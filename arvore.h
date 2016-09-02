@@ -3,9 +3,20 @@
 
 typedef struct arvore
 {
-    char *reg;
-    char *vetorNo;
+    int ordem, num, reg;
+    int *vetorFreq;
+    struct arvore *vetorNo;
 
 }arvore;
 typedef arvore *apontador;
+
+arvore *criaArvore(int);
+arvore* leDicionario(int *);
+void insereNaTrie(arvore *, char *, char, int *);
+void leTexto(arvore *);
+void encontraNaTrie(arvore *, char *, char);
+char separaPalavra(char *, int);
+void criaNo(arvore *);
+int hash(char);
+void imprimeResultado(arvore, int);
 #endif
