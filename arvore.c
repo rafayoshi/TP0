@@ -6,13 +6,22 @@
 arvore *criaArvore(int dicTam)
 {
     arvore *trie;
-    trie = malloc(sizeof(arvore *));
+    trie = (arvore *) malloc(sizeof(arvore));
     trie->vetorFreq = (int *) malloc(dicTam * sizeof(int));
     trie->vetorNo = NULL;
     return trie;
 }
+void criaNo(int posicao, arvore vetorNo)
+{
+    vetorNo = (arvore **) malloc(26 * sizeof(arvore *));
+    arvore novoNo;
+    novoNo.reg = 0;
+    novoNo.vetorNo = (arvore *) malloc(26 * sizeof(arvore));
+    novoNo.vetorNo = NULL;
+    vetorNo = *(&novoNo);
+}
 
-arvore* leDicionario(int *ordem)
+arvore *leDicionario(int *ordem)
 {
     int dicTam;
     size_t palavraTam;
@@ -23,7 +32,7 @@ arvore* leDicionario(int *ordem)
     char *buffer = (char *) malloc(palavraTam);
     getline(&buffer, &palavraTam, stdin);
     palavra = strtok(buffer, " ");
-    if(palavra[strlen(palavra)] == '\n')
+    if(palavra[strlen(palavra) - 1] == '\n')
     {
         palavra[strlen(palavra) - 1] = '\0';
     }
@@ -49,13 +58,15 @@ arvore* leDicionario(int *ordem)
 
 void insereNaTrie(arvore *trie, char *palavra, char letra, int *ordem)
 {
-    int i = 1, posicao;
+    int i = 1,  posicao;
     while(letra != '\0')
     {
         posicao = hash(letra);
-        if(NULL == trie->vetorNo)
+        if(trie->vetorNo == NULL)
         {
-            criaNo(trie);
+            criaNo(posicao, &trie->vetorNo);
+            trie->vetorNo[posicao].reg = 1;
+            trie->vetorNo[posicao].ordem = *ordem;
         }
 
         else if(trie->vetorNo[posicao].reg == 0)
@@ -134,17 +145,6 @@ char separaPalavra(char *palavra, int i)
 {
     char resultado = palavra[i];
     return resultado;
-}
-
-void criaNo(arvore *trie)
-{
-    trie->vetorNo = (arvore *) malloc(26 * sizeof(arvore));
-    int i;
-    for (i = 1; i <= 26; i++)
-    {
-        trie->vetorNo[i].reg = 0;
-        trie->vetorNo[i].num = i;
-    }
 }
 
 int hash(char letra)
