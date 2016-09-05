@@ -5,7 +5,8 @@
 int main(int argc, char * argv[])
 {
     arvore *trie;
-    int ordem = 0;
-    trie = leDicionario(&ordem);
+    trie = leDicionario();
     leTexto(trie);
+    imprimeResultado(trie);
+    // desalocaArvore(trie);
 }

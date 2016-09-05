@@ -13,12 +13,13 @@ arvore *criaArvore(int dicTam)
         vetorNo[i] = NULL;
     }
     trie = (arvore *) malloc(sizeof(arvore));
-    trie->vetorFreq = (int *) malloc(dicTam * sizeof(int));
+    trie->ordem = (vetorOrdem *) malloc((dicTam + 1) * sizeof(vetorOrdem));
     for(i = 0; i < dicTam; i++)
     {
-        trie->vetorFreq[i] = 0;
+        trie->ordem[i].freq = 0;
+        trie->ordem[i].palavraOrdem = malloc(17 * sizeof(char));
     }
-    trie->vetorNo = *vetorNo;
+    trie->vetorNo = (arvore *) *vetorNo;
     trie->tamanho = dicTam;
     free(vetorNo);
     return trie;
@@ -29,19 +30,21 @@ void criaNo(int posicao, arvore *trie)
     arvore **novoNo;
     novoNo = (arvore **) malloc(27 * sizeof(arvore *));
     novoNo[posicao] = (arvore *) malloc(sizeof(arvore));
-    trie->vetorNo = (arvore *) novoNo;
+    novoNo[posicao]->reg = 0;
+    novoNo[posicao]->vetorNo = NULL;
+    trie->vetorNo = (arvore *) *novoNo;
     free(novoNo);
 }
 
-arvore *leDicionario(int *ordem)
+arvore *leDicionario()
 {
-    int dicTam;
+    int dicTam, i = 0;
     size_t palavraTam;
     scanf("%d", &dicTam);
     getchar();
     palavraTam = 16 * dicTam * sizeof(char);
-    char *palavra = (char *) malloc(16 * sizeof(char));
-    char *buffer = (char *) malloc(palavraTam);
+    char *palavra = (char *) malloc(17 * sizeof(char));
+    char *buffer = (char *) malloc(palavraTam + 1);
     getline(&buffer, &palavraTam, stdin);
     palavra = strtok(buffer, " ");
     if(palavra[strlen(palavra) - 1] == '\n')
@@ -53,7 +56,8 @@ arvore *leDicionario(int *ordem)
     while(palavra != NULL)
     {
         letra = separaPalavra(palavra, 0);
-        insereNaTrie(trie, palavra, letra, ordem);
+        strcpy(trie->ordem[i].palavraOrdem, palavra);
+        insereNaTrie(trie, palavra, letra);
         palavra = strtok(NULL, " ");
         if(palavra != NULL)
         {
@@ -62,34 +66,25 @@ arvore *leDicionario(int *ordem)
                 palavra[strlen(palavra) - 1] = '\0';
             }
         }
+        i++;
     }
     free(palavra);
     free(buffer);
     return trie;
 }
 
-void insereNaTrie(arvore *trie, char *palavra, char letra, int *ordem)
+void insereNaTrie(arvore *trie, char *palavra, char letra)
 {
+
     int i = 1,  posicao;
-    while(letra != '\0')
-    {
+    while(letra != '\0') {
         posicao = hash(letra);
-        if(trie->vetorNo == NULL)
-        {
-            criaNo(posicao, trie);
-            trie->vetorNo[posicao].reg = 1;
-            trie->vetorNo[posicao].ordem = *ordem;
-        }
-        else if(trie->vetorNo[posicao].reg == 0)
-        {
-            trie->vetorNo[posicao].reg = 1;
-            trie->vetorNo[posicao].ordem = *ordem;
-        }
+        criaNo(posicao, trie);
+        trie->vetorNo[posicao].reg = 1;
         trie = &trie->vetorNo[posicao];
         letra = separaPalavra(palavra, i);
         i++;
     }
-    ordem++;
 }
 
 void leTexto(arvore *trie)
@@ -103,53 +98,76 @@ void leTexto(arvore *trie)
     char *buffer = (char *) malloc(palavraTam);
     getline(&buffer, &palavraTam, stdin);
     palavra = strtok(buffer, " ");
-    if(palavra[strlen(palavra)] == '\n')
+    if(palavra[strlen(palavra) - 1] == '\n')
     {
         palavra[strlen(palavra) - 1] = '\0';
     }
     char letra;
-    while(palavra != NULL)
+    do
     {
         letra = separaPalavra(palavra, 0);
         encontraNaTrie(trie, palavra, letra);
         palavra = strtok(NULL, " ");
-        if(palavra[strlen(palavra)] == '\n')
+        if(palavra == NULL)
+        {
+            break;
+        }
+        if(palavra[strlen(palavra) - 1] == '\n')
         {
             palavra[strlen(palavra) - 1] = '\0';
         }
-    }
+    }while(palavra != NULL);
     free(palavra);
     free(buffer);
 }
 
-void encontraNaTrie(arvore *trie, char * palavra, char letra)
+void encontraNaTrie(arvore *trie, char *palavra, char letra)
 {
     arvore *sentinela;
-    sentinela = malloc(sizeof(trie));
+    sentinela = (arvore *) malloc(sizeof(trie));
     sentinela = trie;
-    int i = 1, posicao, contador = 0;
+    int i = 1, posicao, posicaoFreq = 0;
+    while(strcmp(trie->ordem[posicaoFreq].palavraOrdem, palavra) != 0)
+    {
+        if(trie->ordem[posicaoFreq + 1].palavraOrdem != NULL)
+        {
+            posicaoFreq++;
+        }
+        else
+        {
+            return;
+        }
+    }
     while(letra != '\0')
     {
         posicao = hash(letra);
         if(NULL == sentinela->vetorNo)
         {
-            trie->vetorFreq[sentinela->ordem] = contador;
             return;
         }
         else if(sentinela->vetorNo[posicao].reg == 0)
         {
-            trie->vetorFreq[sentinela->ordem] = contador;
             return;
         }
         else if(sentinela->vetorNo[posicao].reg == 1)
         {
-            contador++;
             sentinela = &sentinela->vetorNo[posicao];
         }
-        i++;
         letra = separaPalavra(palavra, i);
+        i++;
     }
-    return;
+    trie->ordem[posicaoFreq].freq++;
+ //   desalocaArvore(sentinela);
+}
+
+void desalocaArvore(arvore *trie)
+{
+    int i;
+    for(i = 0; i < 26; i++)
+    {
+        free(&trie->vetorNo[i]);
+    }
+            return;
 }
 
 char separaPalavra(char *palavra, int i)
@@ -164,12 +182,12 @@ int hash(char letra)
     return numero;
 }
 
-void imprimeResultado(arvore trie, int dicTam)
+void imprimeResultado(arvore *trie)
 {
     int i;
-    for(i = 0; i < dicTam; i++)
+    for(i = 0; i < trie->tamanho; i++)
     {
-        printf("%d ", trie.vetorFreq[i]);
+        printf("%d ", trie->ordem[i].freq);
     }
     printf("\n");
 }
