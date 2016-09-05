@@ -3,7 +3,7 @@
 
 typedef struct arvore
 {
-    int ordem, reg;
+    int ordem, reg, tamanho;
     int *vetorFreq;
     struct arvore *vetorNo;
 
@@ -15,7 +15,7 @@ void insereNaTrie(arvore *, char *, char, int *);
 void leTexto(arvore *);
 void encontraNaTrie(arvore *, char *, char);
 char separaPalavra(char *, int);
-void criaNo(int, arvore);
+void criaNo(int, arvore *);
 int hash(char);
 void imprimeResultado(arvore, int);
 #endif
