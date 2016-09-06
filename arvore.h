@@ -11,16 +11,17 @@ typedef struct arvore
 {
     int reg, tamanho;
     vetorOrdem *ordem;
-    struct arvore *vetorNo;
+    struct arvore **vetorNo;
 
 }arvore;
 
 void desalocaArvore(arvore *);
 arvore *criaArvore(int);
 arvore *leDicionario();
-void insereNaTrie(arvore *, char *, char);
+void insereNaTrie(arvore *, char *, char, int);
 void leTexto(arvore *);
 void encontraNaTrie(arvore *, char *, char);
+void compara(arvore *);
 char separaPalavra(char *, int);
 void criaNo(int, arvore *);
 int hash(char);

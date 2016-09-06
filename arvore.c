@@ -5,35 +5,27 @@
 
 arvore *criaArvore(int dicTam)
 {
-    arvore *trie;
-    arvore **vetorNo = (arvore **) malloc(27 * sizeof(arvore *));
+    arvore *trie = (arvore *) malloc(sizeof(arvore ));
+    trie->vetorNo = (arvore **) malloc(27 * sizeof(arvore *));
     int i;
     for(i = 1; i <= 26; i++)
     {
-        vetorNo[i] = NULL;
+        trie->vetorNo[i] = (arvore *) malloc(sizeof(arvore));
     }
-    trie = (arvore *) malloc(sizeof(arvore));
     trie->ordem = (vetorOrdem *) malloc((dicTam + 1) * sizeof(vetorOrdem));
     for(i = 0; i < dicTam; i++)
     {
         trie->ordem[i].freq = 0;
         trie->ordem[i].palavraOrdem = malloc(17 * sizeof(char));
     }
-    trie->vetorNo = (arvore *) *vetorNo;
     trie->tamanho = dicTam;
-    free(vetorNo);
     return trie;
 }
 void criaNo(int posicao, arvore *trie)
 {
-    trie->vetorNo = (arvore *) malloc(27 * sizeof(arvore));
-    arvore **novoNo;
-    novoNo = (arvore **) malloc(27 * sizeof(arvore *));
-    novoNo[posicao] = (arvore *) malloc(sizeof(arvore));
-    novoNo[posicao]->reg = 0;
-    novoNo[posicao]->vetorNo = NULL;
-    trie->vetorNo = (arvore *) *novoNo;
-    free(novoNo);
+    trie->vetorNo[posicao] = (arvore *) malloc(sizeof(arvore));
+    trie->vetorNo[posicao]->reg = 0;
+    trie->vetorNo[posicao]->vetorNo = NULL;
 }
 
 arvore *leDicionario()
@@ -57,7 +49,8 @@ arvore *leDicionario()
     {
         letra = separaPalavra(palavra, 0);
         strcpy(trie->ordem[i].palavraOrdem, palavra);
-        insereNaTrie(trie, palavra, letra);
+        int j = 0;
+        insereNaTrie(trie, palavra, letra, j);
         palavra = strtok(NULL, " ");
         if(palavra != NULL)
         {
@@ -73,17 +66,23 @@ arvore *leDicionario()
     return trie;
 }
 
-void insereNaTrie(arvore *trie, char *palavra, char letra)
+void insereNaTrie(arvore *trie, char *palavra, char letra, int i)
 {
-
-    int i = 1,  posicao;
-    while(letra != '\0') {
+    int posicao;
+    if(letra != '\0') {
         posicao = hash(letra);
-        criaNo(posicao, trie);
-        trie->vetorNo[posicao].reg = 1;
-        trie = &trie->vetorNo[posicao];
-        letra = separaPalavra(palavra, i);
+        if(trie->vetorNo == NULL)
+        {
+            trie->vetorNo = (arvore **) malloc(27 * sizeof(arvore *));
+        }
+        if(trie->vetorNo[posicao] == NULL)
+        {
+            criaNo(posicao, trie);
+        }
+        trie->vetorNo[posicao]->reg = 1;
         i++;
+        letra = separaPalavra(palavra, i);
+        insereNaTrie(trie->vetorNo[posicao], palavra, letra, i);
     }
 }
 
@@ -103,6 +102,7 @@ void leTexto(arvore *trie)
         palavra[strlen(palavra) - 1] = '\0';
     }
     char letra;
+    int j = 0;
     do
     {
         letra = separaPalavra(palavra, 0);
@@ -116,6 +116,7 @@ void leTexto(arvore *trie)
         {
             palavra[strlen(palavra) - 1] = '\0';
         }
+        j++;
     }while(palavra != NULL);
     free(palavra);
     free(buffer);
@@ -124,7 +125,6 @@ void leTexto(arvore *trie)
 void encontraNaTrie(arvore *trie, char *palavra, char letra)
 {
     arvore *sentinela;
-    sentinela = (arvore *) malloc(sizeof(trie));
     sentinela = trie;
     int i = 1, posicao, posicaoFreq = 0;
     while(strcmp(trie->ordem[posicaoFreq].palavraOrdem, palavra) != 0)
@@ -145,13 +145,13 @@ void encontraNaTrie(arvore *trie, char *palavra, char letra)
         {
             return;
         }
-        else if(sentinela->vetorNo[posicao].reg == 0)
+        else if(sentinela->vetorNo[posicao]->reg == 0)
         {
             return;
         }
-        else if(sentinela->vetorNo[posicao].reg == 1)
+        else if(sentinela->vetorNo[posicao]->reg == 1)
         {
-            sentinela = &sentinela->vetorNo[posicao];
+            sentinela = sentinela->vetorNo[posicao];
         }
         letra = separaPalavra(palavra, i);
         i++;
@@ -180,6 +180,21 @@ int hash(char letra)
 {
     int numero = ((int)letra) - 96;
     return numero;
+}
+
+void compara(arvore *trie)
+{
+    int i, j;
+    for(i = 0; i < trie->tamanho; i++)
+    {
+        for(j = i + 1; j < trie->tamanho; j++)
+        {
+            if (strcmp(trie->ordem[i].palavraOrdem,trie->ordem[j].palavraOrdem) == 0)
+            {
+                trie->ordem[j].freq = trie->ordem[i].freq;
+            }
+        }
+    }
 }
 
 void imprimeResultado(arvore *trie)
