@@ -10,7 +10,7 @@ arvore *criaArvore(int dicTam)
     int i;
     for(i = 1; i <= 26; i++)
     {
-        trie->vetorNo[i] = (arvore *) malloc(sizeof(arvore));
+        trie->vetorNo[i] = NULL;
     }
     trie->ordem = (vetorOrdem *) malloc((dicTam + 1) * sizeof(vetorOrdem));
     for(i = 0; i < dicTam; i++)
@@ -68,12 +68,16 @@ arvore *leDicionario()
 
 void insereNaTrie(arvore *trie, char *palavra, char letra, int i)
 {
-    int posicao;
+    int posicao, j;
     if(letra != '\0') {
         posicao = hash(letra);
         if(trie->vetorNo == NULL)
         {
             trie->vetorNo = (arvore **) malloc(27 * sizeof(arvore *));
+            for(j = 0; j < 27; j++)
+            {
+                trie->vetorNo[j] = NULL;
+            }
         }
         if(trie->vetorNo[posicao] == NULL)
         {
@@ -127,7 +131,7 @@ void encontraNaTrie(arvore *trie, char *palavra, char letra)
     arvore *sentinela;
     sentinela = trie;
     int i = 1, posicao, posicaoFreq = 0;
-    while(strcmp(trie->ordem[posicaoFreq].palavraOrdem, palavra) != 0)
+    while((strcmp(trie->ordem[posicaoFreq].palavraOrdem, palavra) != 0) && (posicaoFreq <= trie->tamanho))
     {
         if(trie->ordem[posicaoFreq + 1].palavraOrdem != NULL)
         {
@@ -157,17 +161,36 @@ void encontraNaTrie(arvore *trie, char *palavra, char letra)
         i++;
     }
     trie->ordem[posicaoFreq].freq++;
- //   desalocaArvore(sentinela);
+    desalocaArvore(sentinela);
 }
 
 void desalocaArvore(arvore *trie)
 {
     int i;
-    for(i = 0; i < 26; i++)
+    if (trie == NULL)
     {
-        free(&trie->vetorNo[i]);
+        return;
     }
+    for(i = 1; i <= 26; i++)
+    {
+        if (trie == NULL)
+        {
             return;
+        }
+        else if((trie->vetorNo != NULL))
+        {
+            if (*trie->vetorNo != NULL)
+            {
+                if (trie->vetorNo[i] != NULL)
+                {
+                    desalocaArvore(trie->vetorNo[i]);
+                    free(trie);
+                    trie = NULL;
+                }
+            }
+        }
+    }
+    return;
 }
 
 char separaPalavra(char *palavra, int i)

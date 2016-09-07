@@ -9,5 +9,8 @@ int main(int argc, char * argv[])
     leTexto(trie);
     compara(trie);
     imprimeResultado(trie);
-    // desalocaArvore(trie);
+    free(trie->ordem->palavraOrdem);
+    free(trie->ordem);
+    desalocaArvore(trie);
+
 }
